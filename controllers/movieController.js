@@ -133,7 +133,7 @@ movieController.recommendation=(req,res)=>{
   .then(response=>{
     if (response.length>0) {
       const userId=response[0].spotifyId;
-      const alreadyRecommended=response[0].alreadyRecommended;
+      let alreadyRecommended=response[0].alreadyRecommended;
       let movie;
       
       raccoon.recommendFor(userId, 100).then(rec => {
@@ -151,13 +151,14 @@ movieController.recommendation=(req,res)=>{
             .then(response=>{
 
               response=response.concat(alreadyRecommended);// add movies already recommended to already ratedMovies
+              const movies=(handleMovies(receivedMovies,9,response));
+              console.log('test',movies)
 
-              const movie=(handleMovies(receivedMovies,1,response)[0]);
-              alreadyRecommended.push(movie);
-              userController.updateUser(userId,{alreadyRecommended:alreadyRecommended});
+              alreadyRecommended = [...alreadyRecommended, ...movies]
+              userController.updateUser(userId,{alreadyRecommended});
       
               res.send({
-                "movieId": movie,
+                "movies": movies,
               });
             });
           });
@@ -189,13 +190,13 @@ movieController.findRatedMovies=(userId)=>{
 
 const handleMovies = (moviesToBeSent,n,moviesAllreadyRecommended) =>{
   moviesToBeSent=_.difference(moviesToBeSent,moviesAllreadyRecommended);
-  return moviesToBeSent.slice(0,n);
+  return moviesToBeSent.slice(0, n)
 };
 
 
 movieController.survey=(req,res)=>{
 
-  let numberOfmovies=1;
+  let numberOfmovies=3;
   let moviesToBeSent=[];
   let ratedMovies=[];
   if (!req.headers.authorization) return res.sendStatus(400, 'missing authorization header');

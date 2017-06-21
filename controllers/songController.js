@@ -10,7 +10,7 @@ songController.storePlaylists = (user, access_token, req) => {
     req.spotifyApi.getUserPlaylists(user.spotifyId)
     .then((data) => {
       if (data.body.items) {
-        const playlists=data.body.items.map((playlist) => playlist.id);
+        const playlists=data.body.items.map((playlist) => (1,playlist.id));
           return processPlaylists(playlists, user.spotifyId, req) ;
       }
       else {
@@ -20,6 +20,7 @@ songController.storePlaylists = (user, access_token, req) => {
       }
     })
     .then(songs => {
+
       songController.likeSongs(songs, user.spotifyId);
       resolve(songs);
     })
@@ -49,6 +50,7 @@ const getSongs = (playlists, userId, req) => {
     playlists.forEach((playlist_id) => {
       getSongsByPlaylist(playlist_id, userId, req)
       .then(songsInPlaylist=>{
+        console.log('aaaa', songsInPlaylist)
         if (songsInPlaylist.items) {
           songsInPlaylist.items.forEach(item=>{
             allSongs.push(item.track.id);
@@ -68,6 +70,7 @@ const getSongsByPlaylist=(playlist_id, userId, req)=>{
   return new Promise((resolve, reject) =>  {
     req.spotifyApi.getPlaylistTracks(userId, playlist_id)
     .then((data) => {
+
       resolve(data.body);
     })
     .catch((err) => {
@@ -78,7 +81,9 @@ const getSongsByPlaylist=(playlist_id, userId, req)=>{
 
 songController.likeSongs = (songs, userId) => {
   try {
+    console.log(songs)
     songs.forEach(song => {
+      console.log('song', songId)
       const songId=`SP${song}`;
       raccoon.allLikedFor(userId).then(results=> {
         for (var i = 0; i < results.length; i++) {
